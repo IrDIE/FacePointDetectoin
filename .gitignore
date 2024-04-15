@@ -1,5 +1,5 @@
 ckpt/*
 data/*
-tensorboard_logs/*
+tensorboard_logs
 .venv
 
