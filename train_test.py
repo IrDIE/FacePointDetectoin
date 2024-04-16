@@ -13,7 +13,7 @@ from tqdm import tqdm
 from torchvision import transforms as tfs
 
 
-EPOCHS = 10
+EPOCHS = 100
 IMG_SIZE = 128
 BATCH_SIZE = 16
 LR = 1e-4
@@ -22,21 +22,21 @@ LOGDIR = f'./Logs/tensorboard_logs/{EXPERIMENT_NAME}/'
 device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
 
 
-def logg_hyperparams(tb_logger : SummaryWriter, info):
-    hyperparameters = [
-        ['IMG_SIZE', str(IMG_SIZE)],
-        ['LR', str(LR)],
-        ['LOGDIR', str(LOGDIR)],
-        *info
-
-    ]
-
-    tb_logger.summary.text('hyperparameters', tf.stack(hyperparameters))
+def logg_hyperparams(tb_logger : SummaryWriter, info : dict):
+    hyperparameters = {
+        'IMG_SIZE': IMG_SIZE,
+        'LR': LR,
+        'EXPERIMENT_NAME': EXPERIMENT_NAME,
+        'EPOCHS' : EPOCHS
+    }
+    hyperparameters.update(info)
+    hyp_str = '\n'.join(['%s =  %s\n' % (key, value) for (key, value) in hyperparameters.items()])
+    tb_logger.add_text(text_string = hyp_str, tag='Hyperparameters')
 
 
 
 def update_chpt(metric_best, metric_last, model, optimizer, save_path,  label_name = 'face_net', folder_name = EXPERIMENT_NAME):
-    os.makedirs(save_path, exist_ok=True)
+    os.makedirs(save_path + f'{folder_name}/', exist_ok=True)
     new_best = metric_best
     ckpt_info = {
         'model_state_dict': model.state_dict(),
@@ -51,13 +51,13 @@ def update_chpt(metric_best, metric_last, model, optimizer, save_path,  label_na
     return new_best
 
 
-def test_CED(weights_path, data, model):
+def test_CED(weights_path, data, model, data_name):
     model.load_state_dict(torch.load(weights_path)['model_state_dict'])
     test_loader = get_dataloader(device=device, train=False, root_paths=data, rescale=IMG_SIZE, batch_size=12)
     _, error_list = mse_normed_test(test_loader, model)
     error_list = [err.item() for err in error_list]
     save_path = f'./Logs/CED_plots/{EXPERIMENT_NAME}/'
-    ced_plot([error_list], save_path, title=f"Cummulative error distribution for exp = {EXPERIMENT_NAME}")
+    ced_plot([error_list], save_path, title=f"Cummulative error distribution \nfor data = {data_name}\nfor exp = {EXPERIMENT_NAME} ")
     return error_list
 
 
@@ -66,8 +66,6 @@ def test(weights_path, data, model):
     model.eval()
     test_loader = get_dataloader(device=device, train=False, root_paths=data, rescale=IMG_SIZE, batch_size=BATCH_SIZE)
     return mse_normed_test(test_loader, model)
-
-
 
 
 def train(n_epochs):
@@ -85,7 +83,7 @@ def train(n_epochs):
     mse_val_per_epoch_best=100
 
     tb_summary = SummaryWriter(LOGDIR)
-    logg_hyperparams(tb_logger=tb_summary, info=[['net', 'ONet']])
+    logg_hyperparams(tb_logger=tb_summary, info={'net': 'ONet'})
 
 
     for epoch in tqdm(range(n_epochs), desc="Epoch"):
@@ -114,8 +112,9 @@ def train(n_epochs):
         # do on-end epoch validation
         model.eval()
         mse_val_per_epoch, _ = mse_normed_test(test_loader, model)
+
+        tb_summary.add_scalar('MSE normed per epoch', mse_val_per_epoch, global_step=epoch)
         mse_val_per_epoch_best = update_chpt(mse_val_per_epoch_best, metric_last = mse_val_per_epoch, model=model, optimizer=optimizer, save_path='./ckpt/')
-        tb_summary.add_scalar('MSE normed per epoch',mse_val_per_epoch, global_step=epoch)
         logger.info(f'mse_val_per_epoch = {mse_val_per_epoch}')
 
 
@@ -151,12 +150,12 @@ def mse_normed_test(test_loader, model):
 
 if __name__=="__main__":
 
-    # train(n_epochs=2)
-    model = ONet(in_ch=3, img_size=IMG_SIZE).to(device)
-    # test_data = ['./data/landmarks_task/300W/test_clean_crop/', './data/landmarks_task/Menpo/test_clean_crop/']
-    test_data = ['./data/landmarks_task/test_ced_plot/']
-    error_list = test_CED(weights_path='./ckpt/face_net_best.pt', model= model, data = test_data)
-
+    train(n_epochs=EPOCHS)
+    # model = ONet(in_ch=3, img_size=IMG_SIZE).to(device)
+    # # test_data = ['./data/landmarks_task/300W/test_clean_crop/', './data/landmarks_task/Menpo/test_clean_crop/']
+    # test_data = ['./data/landmarks_task/test_ced_plot/']
+    # error_list = test_CED(weights_path='./ckpt/face_net_best.pt', model= model, data = test_data, data_name = 'test_ced_plot')
+    #
 
 
 
