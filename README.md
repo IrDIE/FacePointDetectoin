@@ -27,6 +27,6 @@ The goal is to compare custom trained model with trained dlib face-landmark dete
 4. run ``train()`` in `train_test.py`
 4. test your model by calculating Cumulative Error Distribution (`def test_CED()`) - that will save plot like that in desired directory:
 
-  ![ced.png](https://github.com/IrDIE/FacePointDetectoin/blob/main/readme_utils/ced.png)
+  ![ced.png](https://github.com/IrDIE/FacePointDetectoin/blob/main/readme_utils/ced_dlib.png)
 
 
