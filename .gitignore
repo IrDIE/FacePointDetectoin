@@ -2,4 +2,7 @@ ckpt/*
 data/*
 tensorboard_logs
 .venv
+Logs
+__*
+utils/__*
 
