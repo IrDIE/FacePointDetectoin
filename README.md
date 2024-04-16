@@ -8,7 +8,7 @@ The goal is to compare custom trained model with trained dlib face-landmark dete
 * Menpo
 * 300W ( dlib was trained on that dataset )
 * Face extraction was done with dlib detector ( http://dlib.net/face_detector.py.html )
-* Also : cleaning datasets function can be fount in `ūtils/clean_data.py` (drop duplicates, extend coped dlib images)
+* Also : cleaning datasets function can be found in `ūtils/clean_data.py` (drop duplicates, extend coped dlib images)
 * Augmentations : 
     ```commandline
           transform = A.Compose([
