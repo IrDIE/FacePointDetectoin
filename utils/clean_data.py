@@ -63,7 +63,7 @@ def save_crop_labels(path, ext_pts='pts'):
         with open(path, "w") as text_file:
             text_file.write(header_str + labels_str + tail_str)
 
-    def extend_dets_rectangle(dets, img, fraction = 0.1):
+    def extend_dets_rectangle(dets, img, fraction = 0.2):
         h_max, w_max = len(img), len(img[0])
 
         fraction_w, fraction_h = fraction*(dets[2] - dets[0]), fraction*(dets[3]-dets[1])
@@ -103,12 +103,6 @@ def save_crop_labels(path, ext_pts='pts'):
                 save_labels(new_label, path = f'{clean_dirname}'+filename[-2] + '.' + ext_pts)
 
 
-
-    # get faces coordinates
-
-    # if one face -> refactor coordinates. else select terget bbox
-
-
 def check_hash(img, exist_hashs):
     h = hash(str(img))
     return h, h in exist_hashs
@@ -123,8 +117,8 @@ if __name__ == "__main__":
                   '../data/landmarks_task/300W/train_clean/',
                   '../data/landmarks_task/300W/test_clean/']
     # clean_data('../data/landmarks_task/300W/test_clean/')
-    save_crop_labels(path=data)
+    # save_crop_labels(path=data)
 
-    # for data in all_4_data:
-    #     print(f'\n{data}\n***\n')
-    #     save_crop_labels(path = data)
+    for data in all_4_data:
+        print(f'\n{data}\n***\n')
+        save_crop_labels(path = data)

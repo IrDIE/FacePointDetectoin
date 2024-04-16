@@ -1,7 +1,12 @@
 import cv2
-from dataloaders import load_point
+from .dataloaders import load_point
 from pathlib import Path
-
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+from loguru import logger
+import matplotlib.patches as mpatches
+from random import random
 
 def show_landmarks(file_path, imagename, label_ext ='.pts'):
     """
@@ -27,10 +32,32 @@ def show_landmarks(file_path, imagename, label_ext ='.pts'):
         cv2.imshow('',frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+def ced_plot(error_lists, save_path, title = '', thr_x = 10):
+    os.makedirs(save_path, exist_ok=True)
+    legend = []
+    plt.figure(figsize=(10, 10), dpi=80)
+
+    for error_list in error_lists:
+        color = (random(), random(), random())
+        values, base = np.histogram(error_list, bins=len(error_list))
+        cumulative = np.cumsum(values) / len(values)
+        plt.plot(base[:-1], cumulative, color=color)
+        area = np.round(np.trapz(cumulative, dx=0.001), 3)
+        legend.append(mpatches.Patch(color=color, label=f'\nArea={area}'))
+
+    plt.legend(handles=legend, fontsize=18)
+    plt.title(title, fontsize=18)
+    plt.grid()
+    plt.ylabel('Fraction of test imeges with error < CED ', fontsize=18)
+    plt.xlabel('Normalised mean error', fontsize=18)
+    plt.xlim([0, thr_x])
+
+    plt.savefig(f'{save_path}ced.png')
+    logger.info(f'CED plot saved to: {save_path}')
 
 
 if __name__ == "__main__":
 
-    data_pts = '../data/landmarks_task/Menpo/train_clean_crop/'
-    show_landmarks(file_path=data_pts, imagename='aflw__face_39897.jpg')
+    data_pts = '../data/landmarks_task/300W/train_clean_crop/'
+    show_landmarks(file_path=data_pts, imagename='134212_1.jpg') # 167629013_1
 
