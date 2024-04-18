@@ -41,8 +41,6 @@ def ced_plot(error_lists, save_path, data_name, title = '', thr_x = 0.08):
         color = (random(), random(), random())
         values, base = np.histogram(error_list, bins=len(error_list))
         cumulative = np.cumsum(values) / len(values)
-        print(cumulative)
-        print(base)
         plt.plot(base[:-1], cumulative, color=color)
         area = np.round(np.trapz(y=cumulative[base[1:] <= thr_x], x=base[base <= thr_x][1:] ), 7)
         legend.append(mpatches.Patch(color=color, label=f'\nArea={area}'))
